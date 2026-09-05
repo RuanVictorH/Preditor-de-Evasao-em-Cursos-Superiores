@@ -1,14 +1,47 @@
 # Preditor de Evasão em Cursos Superiores
 
 Projeto de portfólio que usa os microdados do Censo da Educação Superior (INEP) para treinar
-um modelo de machine learning que estima o risco de evasão de um estudante, exposto como API
-e consumido por uma interface web simples.
+um modelo de machine learning que estima o risco de evasão de uma oferta de curso, exposto
+como API e consumido por uma interface web simples.
 
 ## Objetivo
 
-Sair do notebook e entregar um produto funcionando: alguém preenche um formulário com dados
-de um aluno hipotético e recebe uma previsão de risco de evasão, com o modelo por trás treinado
-em dados públicos reais.
+Sair do notebook e entregar um produto funcionando: alguém preenche um formulário descrevendo
+um curso hipotético (modalidade, turno, categoria administrativa, região etc.) e recebe uma
+previsão de risco de evasão, com o modelo por trás treinado em dados públicos reais.
+
+## Sobre a granularidade dos dados (decisão importante)
+
+O pitch original do projeto previa prever a evasão de um *aluno* individual. Isso não é mais
+possível com dado público: **desde o Censo de 2020, o INEP não publica mais microdados por
+aluno** — por decisão da própria Procuradoria Federal junto ao INEP e exigência da ANPD (LGPD),
+os microdados passaram a ser divulgados agregados por **curso/oferta** (uma linha = um curso de
+uma IES, geralmente por polo). Por isso o projeto foi reformulado: o modelo prevê o risco de
+evasão de uma **oferta de curso**, não de um estudante específico.
+
+### Definição da variável-alvo
+
+O INEP não fornece uma "taxa de evasão" pronta. Ela foi construída a partir do dicionário de
+dados: a *Situação do Vínculo do Aluno no Curso* é uma categoria única e mutuamente exclusiva
+(Cursando, Matrícula trancada, Desvinculado do curso, Transferência interna, Formado, Falecido).
+Logo:
+
+```
+total_vinculos = QT_MAT + QT_SIT_TRANCADA + QT_SIT_DESVINCULADO
+                  + QT_SIT_TRANSFERIDO + QT_CONC + QT_SIT_FALECIDO
+taxa_evasao     = QT_SIT_DESVINCULADO / total_vinculos
+```
+
+É uma foto de um único ano (2023), não um acompanhamento de coorte ao longo do curso inteiro —
+uma aproximação transversal da evasão, documentada como limitação do projeto.
+
+Para virar um problema de classificação (como o roteiro original pedia), ofertas no quartil
+superior de `taxa_evasao` são rotuladas como `alto_risco = 1`. Isso já entrega uma classe
+desbalanceada de forma natural (~26% alto risco / ~74% não), sem artificialismo.
+
+Ofertas com menos de 10 vínculos totais são descartadas antes de calcular o alvo — sem esse
+filtro, uma turma de 2 alunos onde 1 evade vira "50% de evasão", o que é ruído estatístico, não
+sinal. Ver [ml/src/data_prep.py](ml/src/data_prep.py) para a implementação completa.
 
 ## Stack
 
@@ -34,7 +67,7 @@ frontend/       # interface React para simular um caso
 
 ## Roteiro
 
-- [ ] Baixar e selecionar um recorte dos microdados do INEP (um ano)
+- [x] Baixar e selecionar um recorte dos microdados do INEP (um ano)
 - [ ] Limpeza e engenharia de atributos
 - [ ] Treinar e comparar 2–3 modelos (regressão logística, árvore, random forest)
 - [ ] Avaliar com métricas adequadas para classe desbalanceada (precisão/recall, não só acurácia)

@@ -68,12 +68,37 @@ frontend/       # interface React para simular um caso
 ## Roteiro
 
 - [x] Baixar e selecionar um recorte dos microdados do INEP (um ano)
-- [ ] Limpeza e engenharia de atributos
-- [ ] Treinar e comparar 2–3 modelos (regressão logística, árvore, random forest)
-- [ ] Avaliar com métricas adequadas para classe desbalanceada (precisão/recall, não só acurácia)
+- [x] Limpeza e engenharia de atributos
+- [x] Treinar e comparar 2–3 modelos (regressão logística, árvore, random forest)
+- [x] Avaliar com métricas adequadas para classe desbalanceada (precisão/recall, não só acurácia)
 - [ ] Expor o modelo numa API Flask
 - [ ] Interface em React para simular um caso e ver o risco
 - [ ] README final contando a jornada: pergunta, dados, modelo, resultado, limitações
+
+## Modelo
+
+Três classificadores foram treinados sobre as mesmas features (perfil da IES/curso + porte de
+vagas/demanda) para prever `alto_risco` (quartil superior de `taxa_evasao`), com
+`class_weight="balanced"` pra lidar com o desbalanceamento:
+
+| Modelo               | Precisão (alto risco) | Recall (alto risco) | F1 (alto risco) | ROC-AUC |
+|-----------------------|:---:|:---:|:---:|:---:|
+| Regressão logística   | 0.38 | 0.68 | 0.49 | 0.699 |
+| Árvore de decisão     | 0.40 | 0.67 | 0.50 | 0.711 |
+| **Random Forest**     | **0.40** | **0.70** | **0.51** | **0.730** |
+
+Random Forest venceu e foi o modelo salvo (`ml/models/modelo_evasao.joblib`, gerado localmente,
+não versionado — rode `python ml/src/train.py` pra reproduzir).
+
+**Achados**: as features mais importantes foram o tipo de organização acadêmica da IES
+(Universidade vs. Centro Universitário), a quantidade de ingressantes, a taxa de ocupação das
+vagas ofertadas e a concorrência (inscritos por vaga) — essas duas últimas foram atributos
+criados, não vieram prontas do INEP.
+
+**Limitações**: recall razoável (70%) mas precisão baixa (40%) — o modelo erra bastante pra
+mais ao marcar cursos como "alto risco". Isso é esperado: as features disponíveis descrevem o
+*curso*, não o aluno, então boa parte da variação individual que de fato explica evasão
+(desempenho acadêmico, situação financeira, adaptação) não está nos dados públicos disponíveis.
 
 ## Dados
 
@@ -81,9 +106,8 @@ Baixe os microdados do Censo da Educação Superior na página oficial do INEP:
 
 https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/microdados/censo-da-educacao-superior
 
-Escolha um ano recente (2023 ou 2024), extraia o `.zip` e copie os arquivos CSV de interesse
-(principalmente o de alunos/situação de matrícula) para `data/raw/`. Os arquivos são grandes
-(vários GB no total) — não serão versionados no git.
+Escolha um ano (o projeto usa 2023), extraia o `.zip` e copie `MICRODADOS_CADASTRO_CURSOS_AAAA.CSV`
+para `data/raw/`. Não existe mais arquivo por aluno — ver a seção acima sobre granularidade.
 
 ## Setup
 

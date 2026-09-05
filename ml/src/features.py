@@ -14,10 +14,9 @@ CATEGORICAS = [
     "TP_MODALIDADE_ENSINO", "TP_DIMENSAO",
 ]
 
-NUMERICAS = [
-    "QT_VG_TOTAL", "QT_INSCRITO_TOTAL", "QT_ING",
-    "concorrencia", "taxa_ocupacao_vagas",
-]
+# campos brutos que o formulário pede; concorrencia/taxa_ocupacao_vagas são derivados deles
+NUMERICAS_ENTRADA = ["QT_VG_TOTAL", "QT_INSCRITO_TOTAL", "QT_ING"]
+NUMERICAS = NUMERICAS_ENTRADA + ["concorrencia", "taxa_ocupacao_vagas"]
 
 ALVO = "alto_risco"
 

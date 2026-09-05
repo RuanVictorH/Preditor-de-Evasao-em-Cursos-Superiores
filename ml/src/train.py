@@ -3,6 +3,7 @@ Treina e compara 3 modelos de classificação para o risco de evasão de ofertas
 e salva o melhor (por F1 da classe minoritária "alto_risco") pronto pra API consumir.
 """
 
+import json
 import sys
 
 import joblib
@@ -18,12 +19,14 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.tree import DecisionTreeClassifier
 
 from features import CATEGORICAS, NUMERICAS, dividir_x_y
+from opcoes import gerar_opcoes
 
 if sys.stdout.encoding != "utf-8":
     sys.stdout.reconfigure(encoding="utf-8")
 
 DADOS_PATH = "data/processed/cursos_2023_tratado.csv"
 MODELO_PATH = "ml/models/modelo_evasao.joblib"
+OPCOES_PATH = "ml/models/opcoes.json"
 
 
 def montar_preprocessador():
@@ -85,6 +88,10 @@ def main():
     print(f"\nMelhor modelo (F1 da classe alto_risco): {melhor_nome} ({melhor_f1:.3f})")
     joblib.dump(melhor_pipeline, MODELO_PATH)
     print(f"Salvo em {MODELO_PATH}")
+
+    with open(OPCOES_PATH, "w", encoding="utf-8") as f:
+        json.dump(gerar_opcoes(X), f, ensure_ascii=False, indent=2)
+    print(f"Opções do formulário salvas em {OPCOES_PATH}")
 
 
 if __name__ == "__main__":

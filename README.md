@@ -71,9 +71,26 @@ frontend/       # interface React para simular um caso
 - [x] Limpeza e engenharia de atributos
 - [x] Treinar e comparar 2–3 modelos (regressão logística, árvore, random forest)
 - [x] Avaliar com métricas adequadas para classe desbalanceada (precisão/recall, não só acurácia)
-- [ ] Expor o modelo numa API Flask
-- [ ] Interface em React para simular um caso e ver o risco
+- [x] Expor o modelo numa API Flask
+- [x] Interface em React para simular um caso e ver o risco
 - [ ] README final contando a jornada: pergunta, dados, modelo, resultado, limitações
+
+## API
+
+Depois de treinar o modelo (`python ml/src/train.py`, gera `ml/models/modelo_evasao.joblib`
+e `ml/models/opcoes.json`), suba a API:
+
+```bash
+cd backend
+.venv\Scripts\activate
+python -m flask --app app run --port 5000
+```
+
+- `GET /health` — checagem simples
+- `GET /opcoes` — valor/rótulo de cada campo categórico, pro frontend montar os selects
+  exatamente com as categorias que o modelo viu no treino
+- `POST /predict` — recebe os campos do curso hipotético e devolve
+  `{"alto_risco": bool, "probabilidade_alto_risco": float}`
 
 ## Modelo
 
@@ -132,6 +149,9 @@ pip install -r requirements.txt
 
 ```bash
 cd frontend
-npm create vite@latest . -- --template react
 npm install
+npm run dev
 ```
+
+Abre em `http://localhost:5173` e espera a API em `http://localhost:5000` (configurável via
+`VITE_API_URL`). Backend e frontend rodam em processos separados, ao mesmo tempo.

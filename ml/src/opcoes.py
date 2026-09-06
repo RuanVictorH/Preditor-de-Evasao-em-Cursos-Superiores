@@ -54,12 +54,16 @@ def gerar_opcoes(X):
         mapa = LABELS_POR_CODIGO.get(col)
         if mapa:
             lista = []
+            vistos = set()
             for v in valores:
                 if v == "Não informado":
                     lista.append({"value": v, "label": "Não informado"})
                 else:
                     codigo = int(float(v))
-                    lista.append({"value": v, "label": mapa.get(codigo, v)})
+                    valor_norm = str(codigo)  # normaliza "1.0" -> "1"
+                    if valor_norm not in vistos:
+                        vistos.add(valor_norm)
+                        lista.append({"value": valor_norm, "label": mapa.get(codigo, v)})
         else:
             lista = [{"value": v, "label": v} for v in valores]
         opcoes[col] = lista
